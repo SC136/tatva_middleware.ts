@@ -40,8 +40,8 @@ export default function Help() {
         {
           question: "Which languages are supported for voice commands?",
           questionHindi: "वॉयस कमांड के लिए कौन सी भाषाएं समर्थित हैं?",
-          answer: "VoicePay supports Hindi, Marathi, and English. You can mix languages in a single command, and the AI will understand the context.",
-          answerHindi: "VoicePay हिंदी, मराठी और अंग्रेजी का समर्थन करता है। आप एक ही कमांड में भाषाओं को मिला सकते हैं, और AI संदर्भ को समझ जाएगा।"
+          answer: "Tatva Business supports Hindi, Marathi, and English. You can mix languages in a single command, and the AI will understand the context.",
+          answerHindi: "Tatva Business हिंदी, मराठी और अंग्रेजी का समर्थन करता है। आप एक ही कमांड में भाषाओं को मिला सकते हैं, और AI संदर्भ को समझ जाएगा।"
         },
         {
           question: "How accurate is the voice recognition?",
@@ -181,7 +181,7 @@ export default function Help() {
         <div>
           <h1 className="text-3xl font-bold">Help & Support</h1>
           <p className="text-muted-foreground">
-            सहायता और समर्थन - Get help with VoicePay features and troubleshooting
+            सहायता और समर्थन - Get help with Tatva Business features and troubleshooting
           </p>
         </div>
       </div>

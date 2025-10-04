@@ -11,10 +11,8 @@ import {
   Shield, 
   Smartphone,
   CheckCircle,
-  Star,
   Users,
-  TrendingUp,
-  Play
+  TrendingUp
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -57,35 +55,11 @@ export function HomePage() {
     }
   ];
 
-  const testimonials = [
-    {
-      name: "राम शर्मा",
-      business: "Grocery Store Owner",
-      rating: 5,
-      comment: "Tatva ने मेरे व्यापार को बहुत आसान बना दिया है। अब मैं हिंदी में बोलकर सब कुछ रिकॉर्ड कर सकता हूं।",
-      commentEn: "Tatva has made my business so much easier. Now I can record everything by speaking in Hindi."
-    },
-    {
-      name: "Priya Patel",
-      business: "Tea Stall Owner",
-      rating: 5,
-      comment: "The voice recognition is amazing! It understands my Gujarati-Hindi mix perfectly.",
-      commentHi: "वॉयस रिकग्निशन बहुत बेहतरीन है! यह मेरी गुजराती-हिंदी मिश्रण को बिल्कुल सही समझता है।"
-    },
-    {
-      name: "अजय महाजन",
-      business: "Mobile Shop",
-      rating: 5,
-      comment: "पहले मुझे हिसाब-किताब रखना मुश्किल लगता था। अब Tatva के साथ सब कुछ automatic है।",
-      commentEn: "Earlier I found it difficult to keep accounts. Now with Tatva everything is automatic."
-    }
-  ];
-
   const stats = [
-    { number: "10,000+", label: "Active Users", labelHindi: "सक्रिय उपयोगकर्ता" },
-    { number: "94%", label: "Voice Accuracy", labelHindi: "आवाज़ की सटीकता" },
-    { number: "15+", label: "Languages", labelHindi: "भाषाएं" },
-    { number: "₹50L+", label: "Transactions Tracked", labelHindi: "ट्रैक किए गए लेन-देन" }
+    { number: "3", label: "Languages Supported", labelHindi: "समर्थित भाषाएं" },
+    { number: "100%", label: "Free & Open", labelHindi: "मुफ्त और खुला" },
+    { number: "Voice", label: "Enabled Recording", labelHindi: "आवाज़ से रिकॉर्डिंग" },
+    { number: "Cloud", label: "& Local Storage", labelHindi: "और स्थानीय स्टोरेज" }
   ];
 
   return (
@@ -145,12 +119,8 @@ export function HomePage() {
               onClick={() => navigate('/login')}
               className="bg-gradient-primary text-lg px-8 py-6"
             >
-              Start Free Trial
+              Get Started
               <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-            <Button size="lg" variant="outline" className="text-lg px-8 py-6">
-              <Play className="mr-2 h-5 w-5" />
-              Watch Demo
             </Button>
           </div>
 
@@ -203,69 +173,27 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-20 px-4">
-        <div className="container mx-auto">
-          <div className="text-center space-y-4 mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold">
-              What Our Users Say
-            </h2>
-            <p className="text-xl text-muted-foreground">
-              हमारे उपयोगकर्ता क्या कहते हैं
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="shadow-card">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-1 mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    ))}
-                  </div>
-                  <p className="text-sm mb-4 italic">"{testimonial.comment}"</p>
-                  {testimonial.commentEn && (
-                    <p className="text-xs text-muted-foreground mb-4">"{testimonial.commentEn}"</p>
-                  )}
-                  {testimonial.commentHi && (
-                    <p className="text-xs text-muted-foreground mb-4">"{testimonial.commentHi}"</p>
-                  )}
-                  <div>
-                    <div className="font-medium">{testimonial.name}</div>
-                    <div className="text-sm text-muted-foreground">{testimonial.business}</div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* CTA Section */}
       <section className="py-20 px-4 bg-gradient-primary text-white">
         <div className="container mx-auto text-center space-y-8">
           <h2 className="text-3xl md:text-4xl font-bold">
-            Ready to Transform Your Business?
+            Ready to Manage Your Business?
           </h2>
           <p className="text-xl opacity-90">
-            अपने व्यापार को बदलने के लिए तैयार हैं?
+            अपने व्यापार को प्रबंधित करने के लिए तैयार हैं?
           </p>
           <p className="text-lg opacity-80 max-w-2xl mx-auto">
-            Join thousands of small business owners who are already using Tatva to streamline their financial management.
+            Start tracking your transactions with voice commands in Hindi, Marathi, or English.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex justify-center">
             <Button 
               size="lg" 
               variant="secondary"
               onClick={() => navigate('/login')}
               className="text-lg px-8 py-6"
             >
-              Start Your Free Trial
+              Get Started Now
               <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-            <Button size="lg" variant="outline" className="text-lg px-8 py-6 border-white text-white hover:bg-white hover:text-primary">
-              Contact Sales
             </Button>
           </div>
         </div>
@@ -288,32 +216,54 @@ export function HomePage() {
             </div>
             
             <div>
-              <h3 className="font-semibold mb-4">Product</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>Features</li>
-                <li>Pricing</li>
-                <li>API</li>
-                <li>Integrations</li>
+              <h3 className="font-semibold mb-4">Resources</h3>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <button 
+                    onClick={() => navigate('/help')}
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Help Center
+                  </button>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => navigate('/learn')}
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Learn
+                  </button>
+                </li>
               </ul>
             </div>
             
             <div>
-              <h3 className="font-semibold mb-4">Support</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>Help Center</li>
-                <li>Contact Us</li>
-                <li>Status</li>
-                <li>Community</li>
+              <h3 className="font-semibold mb-4">App</h3>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <button 
+                    onClick={() => navigate('/login')}
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Sign In
+                  </button>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => navigate('/login')}
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Get Started
+                  </button>
+                </li>
               </ul>
             </div>
             
             <div>
-              <h3 className="font-semibold mb-4">Company</h3>
+              <h3 className="font-semibold mb-4">Legal</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>About</li>
-                <li>Blog</li>
-                <li>Careers</li>
-                <li>Privacy</li>
+                <li>Terms of Service</li>
+                <li>Privacy Policy</li>
               </ul>
             </div>
           </div>
