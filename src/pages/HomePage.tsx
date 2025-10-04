@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,10 +15,19 @@ import {
   TrendingUp
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function HomePage() {
   const navigate = useNavigate();
+  const { isAuthenticated, loading } = useAuth();
   const [activeFeature, setActiveFeature] = useState(0);
+
+  // Redirect to dashboard if already logged in
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, loading, navigate]);
 
   const features = [
     {
@@ -61,6 +70,11 @@ export function HomePage() {
     { number: "Voice", label: "Enabled Recording", labelHindi: "आवाज़ से रिकॉर्डिंग" },
     { number: "Cloud", label: "& Local Storage", labelHindi: "और स्थानीय स्टोरेज" }
   ];
+
+  // Show nothing while checking auth status
+  if (loading) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-primary/5">

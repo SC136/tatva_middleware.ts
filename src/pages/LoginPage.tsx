@@ -1,5 +1,5 @@
 import frontImage from "@/pages/front.jpeg";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -28,6 +28,17 @@ export function LoginPage() {
   const [localLanguage, setLocalLanguage] = useState(language);
   const [error, setError] = useState("");
 
+  const navigate = useNavigate();
+  const { signIn, signUp, isAuthenticated, loading } = useAuth();
+  const { toast } = useToast();
+
+  // Redirect to dashboard if already logged in
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, loading, navigate]);
+
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [signupForm, setSignupForm] = useState({
     firstName: "",
@@ -38,10 +49,6 @@ export function LoginPage() {
     confirmPassword: "",
     businessName: "",
   });
-
-  const navigate = useNavigate();
-  const { signIn, signUp } = useAuth();
-  const { toast } = useToast();
 
   const languages = [
     { value: "en", label: "English", flag: "🇬🇧" },
@@ -125,6 +132,11 @@ export function LoginPage() {
       setIsLoading(false);
     }
   };
+
+  // Show nothing while checking auth status
+  if (loading) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-primary/5 flex flex-col lg:flex-row items-center justify-center p-4 gap-8">
