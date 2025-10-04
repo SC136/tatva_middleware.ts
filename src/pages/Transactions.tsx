@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,29 +10,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { 
-  Plus, 
-  Search, 
-  Wallet, 
-  Edit, 
-  Trash2, 
-  Filter,
-  SortAsc,
-  SortDesc,
-  ArrowUpRight,
-  ArrowDownRight,
-  Calendar as CalendarIcon,
-  Download,
-  Upload,
-  TrendingUp,
-  TrendingDown,
-  DollarSign
-} from "lucide-react";
-import { useTransactions } from "@/hooks/useStorage";
-import { Transaction } from "@/lib/storage";
-import { formatCurrency, formatDate, formatTime } from "@/lib/storage";
+import { Plus, Search, Wallet, CreditCard as Edit, Trash2, Filter, Import as SortAsc, Dessert as SortDesc, ArrowUpRight, ArrowDownRight, Calendar as CalendarIcon, Download, Upload, TrendingUp, TrendingDown, DollarSign } from "lucide-react";
+import { Transaction } from '@/types';
+import { db } from '@/lib/database';
+import { analytics } from '@/lib/analytics';
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { toast } from 'sonner';
+import { VoiceTransaction } from '@/components/VoiceTransaction';
 
 const TRANSACTION_CATEGORIES = {
   income: [
@@ -68,7 +53,7 @@ const PAYMENT_METHODS = [
 ];
 
 export default function Transactions() {
-  const { transactions, addTransaction, updateTransaction, deleteTransaction, getTransactionsByDateRange } = useTransactions();
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -76,10 +61,25 @@ export default function Transactions() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [voiceLanguage, setVoiceLanguage] = useState<'en' | 'hi' | 'mr'>('en');
   const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
     from: undefined,
     to: undefined
   });
+
+  useEffect(() => {
+    loadTransactions();
+    const unsubscribe = db.subscribe(() => loadTransactions());
+    return () => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+    };
+  }, []);
+
+  const loadTransactions = () => {
+    setTransactions(db.getTransactions());
+  };
 
   // Form state
   const [formData, setFormData] = useState({
@@ -106,30 +106,52 @@ export default function Transactions() {
     });
   };
 
+  // Optimized input handlers to prevent re-renders
+  const handleInputChange = useCallback((field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData(prev => ({ ...prev, [field]: e.target.value }));
+  }, []);
+
+  const handleSelectChange = useCallback((field: string) => (value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  const handleTypeChange = useCallback((value: 'income' | 'expense') => {
+    setFormData(prev => ({ ...prev, type: value, category: '' }));
+  }, []);
+
+  const handleDateChange = useCallback((date: Date) => {
+    setFormData(prev => ({ ...prev, date }));
+  }, []);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const transactionData = {
       type: formData.type,
       amount: parseFloat(formData.amount) || 0,
-      item: formData.item,
       category: formData.category,
-      description: formData.description,
+      item: formData.item,
+      description: `${formData.item}${formData.description ? ' - ' + formData.description : ''}`,
       paymentMethod: formData.paymentMethod,
       date: formData.date.toISOString(),
-      time: formData.date.toISOString(),
-      tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : []
+      tags: formData.tags ? formData.tags.split(',').map(t => t.trim()).filter(Boolean) : undefined,
     };
 
-    if (editingTransaction) {
-      updateTransaction(editingTransaction.id, transactionData);
-      setEditingTransaction(null);
-    } else {
-      addTransaction(transactionData);
-      setIsAddDialogOpen(false);
+    try {
+      if (editingTransaction) {
+        db.updateTransaction(editingTransaction.id, transactionData);
+        toast.success('Transaction updated successfully');
+        setEditingTransaction(null);
+      } else {
+        db.addTransaction(transactionData);
+        toast.success('Transaction added successfully');
+        setIsAddDialogOpen(false);
+      }
+
+      resetForm();
+    } catch (error) {
+      toast.error('Failed to save transaction');
     }
-    
-    resetForm();
   };
 
   const handleEdit = (transaction: Transaction) => {
@@ -147,7 +169,41 @@ export default function Transactions() {
   };
 
   const handleDelete = (transactionId: string) => {
-    deleteTransaction(transactionId);
+    if (db.deleteTransaction(transactionId)) {
+      toast.success('Transaction deleted successfully');
+    } else {
+      toast.error('Failed to delete transaction');
+    }
+  };
+
+  const handleVoiceTransactionDetected = (data: {
+    type: 'income' | 'expense';
+    amount: string;
+    item: string;
+    category: string;
+    description: string;
+  }) => {
+    setFormData({
+      ...formData,
+      type: data.type,
+      amount: data.amount,
+      item: data.item,
+      category: data.category,
+      description: data.description,
+    });
+    setIsAddDialogOpen(true);
+  };
+
+  const handleExport = () => {
+    const csv = analytics.exportToCSV(transactions);
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `transactions_${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('Transactions exported successfully');
   };
 
   // Calculate stats
@@ -164,9 +220,8 @@ export default function Transactions() {
   // Filter and sort transactions
   const filteredTransactions = transactions
     .filter(transaction => {
-      const matchesSearch = transaction.item.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           transaction.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           (transaction.description && transaction.description.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchesSearch = transaction.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           transaction.category.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesType = selectedType === 'all' || transaction.type === selectedType;
       const matchesCategory = selectedCategory === 'all' || transaction.category === selectedCategory;
       
@@ -210,14 +265,12 @@ export default function Transactions() {
       }
     });
 
-  const TransactionForm = () => (
+  const TransactionForm = useMemo(() => (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="type">Transaction Type *</Label>
-          <Select value={formData.type} onValueChange={(value: 'income' | 'expense') => {
-            setFormData({ ...formData, type: value, category: '' });
-          }}>
+          <Select value={formData.type} onValueChange={handleTypeChange}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -234,8 +287,9 @@ export default function Transactions() {
             type="number"
             step="0.01"
             value={formData.amount}
-            onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+            onChange={handleInputChange('amount')}
             required
+            autoComplete="off"
           />
         </div>
         <div>
@@ -243,13 +297,14 @@ export default function Transactions() {
           <Input
             id="item"
             value={formData.item}
-            onChange={(e) => setFormData({ ...formData, item: e.target.value })}
+            onChange={handleInputChange('item')}
             required
+            autoComplete="off"
           />
         </div>
         <div>
           <Label htmlFor="category">Category *</Label>
-          <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+          <Select value={formData.category} onValueChange={handleSelectChange('category')}>
             <SelectTrigger>
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
@@ -262,7 +317,7 @@ export default function Transactions() {
         </div>
         <div>
           <Label htmlFor="paymentMethod">Payment Method</Label>
-          <Select value={formData.paymentMethod} onValueChange={(value: any) => setFormData({ ...formData, paymentMethod: value })}>
+          <Select value={formData.paymentMethod} onValueChange={handleSelectChange('paymentMethod')}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -292,7 +347,7 @@ export default function Transactions() {
               <Calendar
                 mode="single"
                 selected={formData.date}
-                onSelect={(date) => date && setFormData({ ...formData, date })}
+                onSelect={(date) => date && handleDateChange(date)}
                 initialFocus
               />
             </PopoverContent>
@@ -303,8 +358,10 @@ export default function Transactions() {
           <Input
             id="tags"
             value={formData.tags}
-            onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+            onChange={handleInputChange('tags')}
             placeholder="e.g., urgent, recurring, business"
+            autoComplete="off"
+            spellCheck={false}
           />
         </div>
       </div>
@@ -313,8 +370,9 @@ export default function Transactions() {
         <Textarea
           id="description"
           value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          onChange={handleInputChange('description')}
           rows={3}
+          spellCheck={false}
         />
       </div>
       <div className="flex justify-end gap-2">
@@ -334,7 +392,7 @@ export default function Transactions() {
         </Button>
       </div>
     </form>
-  );
+  ), [formData, handleSubmit, handleInputChange, handleSelectChange, handleTypeChange, handleDateChange, resetForm, setEditingTransaction, setIsAddDialogOpen, editingTransaction]);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -347,7 +405,12 @@ export default function Transactions() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
+          <VoiceTransaction
+            onTransactionDetected={handleVoiceTransactionDetected}
+            language={voiceLanguage}
+            onLanguageChange={setVoiceLanguage}
+          />
+          <Button variant="outline" size="sm" onClick={handleExport}>
             <Download className="mr-2 h-4 w-4" />
             Export
           </Button>
@@ -362,7 +425,7 @@ export default function Transactions() {
               <DialogHeader>
                 <DialogTitle>Add New Transaction</DialogTitle>
               </DialogHeader>
-              <TransactionForm />
+              {TransactionForm}
             </DialogContent>
           </Dialog>
         </div>
@@ -375,7 +438,7 @@ export default function Transactions() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-white/80">Total Income</p>
-                <p className="text-2xl font-bold">{formatCurrency(totalIncome)}</p>
+                <p className="text-2xl font-bold">₹{totalIncome.toLocaleString()}</p>
               </div>
               <TrendingUp className="h-6 w-6 text-white/80" />
             </div>
@@ -386,7 +449,7 @@ export default function Transactions() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-white/80">Total Expenses</p>
-                <p className="text-2xl font-bold">{formatCurrency(totalExpenses)}</p>
+                <p className="text-2xl font-bold">₹{totalExpenses.toLocaleString()}</p>
               </div>
               <TrendingDown className="h-6 w-6 text-white/80" />
             </div>
@@ -397,7 +460,7 @@ export default function Transactions() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-white/80">Net Profit</p>
-                <p className="text-2xl font-bold">{formatCurrency(netProfit)}</p>
+                <p className="text-2xl font-bold">₹{netProfit.toLocaleString()}</p>
               </div>
               <DollarSign className="h-6 w-6 text-white/80" />
             </div>
@@ -501,13 +564,13 @@ export default function Transactions() {
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-semibold">{transaction.item}</h3>
+                        <h3 className="font-semibold">{transaction.description}</h3>
                         <Badge variant={transaction.type === 'income' ? 'default' : 'destructive'}>
                           {transaction.type}
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        {transaction.category} • {formatDate(transaction.date)} • {formatTime(transaction.time)}
+                        {transaction.category} • {format(new Date(transaction.date), 'PPP')}
                       </p>
                       {transaction.description && (
                         <p className="text-xs text-muted-foreground mt-1">{transaction.description}</p>
@@ -528,7 +591,7 @@ export default function Transactions() {
                       <p className={`text-lg font-bold ${
                         transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
                       }`}>
-                        {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                        {transaction.type === 'income' ? '+' : '-'}₹{transaction.amount.toLocaleString()}
                       </p>
                       <p className="text-xs text-muted-foreground capitalize">
                         {transaction.paymentMethod?.replace('_', ' ')}
@@ -545,13 +608,12 @@ export default function Transactions() {
                           <DialogHeader>
                             <DialogTitle>Edit Transaction</DialogTitle>
                           </DialogHeader>
-                          <TransactionForm />
+                          {TransactionForm}
                         </DialogContent>
                       </Dialog>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button variant="ghost" size="icon">
-                            <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
