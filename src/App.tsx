@@ -12,7 +12,6 @@ import { HomePage } from '@/pages/HomePage';
 import { LoginPage } from '@/pages/LoginPage';
 import Index from '@/pages/Index';
 import Analytics from '@/pages/Analytics';
-import AdvancedAnalytics from '@/pages/AdvancedAnalytics';
 import Transactions from '@/pages/Transactions';
 import Inventory from '@/pages/Inventory';
 import Assistant from '@/pages/Assistant';
@@ -36,17 +35,10 @@ function App() {
             <Router>
               <Routes>
                 {/* Public routes */}
-                <Route path="/home" element={<HomePage />} />
+                <Route path="/" element={<HomePage />} />
                 <Route path="/login" element={<LoginPage />} />
                 
                 {/* Protected routes with layout */}
-                <Route path="/" element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Index />
-                    </Layout>
-                  </ProtectedRoute>
-                } />
                 <Route path="/dashboard" element={
                   <ProtectedRoute>
                     <Layout>
@@ -58,13 +50,6 @@ function App() {
                   <ProtectedRoute>
                     <Layout>
                       <Analytics />
-                    </Layout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/advanced-analytics" element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <AdvancedAnalytics />
                     </Layout>
                   </ProtectedRoute>
                 } />

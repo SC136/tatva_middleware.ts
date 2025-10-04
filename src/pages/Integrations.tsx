@@ -69,6 +69,8 @@ export default function Integrations() {
   const [integrations, setIntegrations] = useState<IntegrationConfig[]>([]);
   const [selectedIntegration, setSelectedIntegration] = useState<typeof integrationTemplates[0] | null>(null);
   const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
+  const [isWhatsAppDialogOpen, setIsWhatsAppDialogOpen] = useState(false);
+  const [whatsappNumber, setWhatsappNumber] = useState('');
   const [config, setConfig] = useState({
     apiKey: '',
     webhookUrl: '',
@@ -78,7 +80,11 @@ export default function Integrations() {
   useEffect(() => {
     loadIntegrations();
     const unsubscribe = db.subscribe(() => loadIntegrations());
-    return unsubscribe;
+    return () => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+    };
   }, []);
 
   const loadIntegrations = () => {
@@ -123,6 +129,74 @@ export default function Integrations() {
     setSelectedIntegration(null);
   };
 
+  const generateAnalysisReport = () => {
+    const transactions = db.getTransactions();
+    const products = db.getProducts();
+    
+    // Calculate statistics
+    const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+    const totalExpenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+    const netProfit = totalIncome - totalExpenses;
+    const lowStockProducts = products.filter(p => p.stockQuantity <= p.lowStockThreshold);
+    
+    // Format report
+    const report = `📊 *Business Analysis Report*
+━━━━━━━━━━━━━━━━━━━━
+
+💰 *Financial Summary*
+• Total Income: ₹${totalIncome.toLocaleString('en-IN')}
+• Total Expenses: ₹${totalExpenses.toLocaleString('en-IN')}
+• Net Profit: ₹${netProfit.toLocaleString('en-IN')}
+• Profit Margin: ${totalIncome > 0 ? ((netProfit/totalIncome) * 100).toFixed(1) : 0}%
+
+📦 *Inventory Status*
+• Total Products: ${products.length}
+• Low Stock Items: ${lowStockProducts.length}
+${lowStockProducts.length > 0 ? '• Alert: ' + lowStockProducts.slice(0, 3).map(p => p.name).join(', ') : ''}
+
+📈 *Transaction Overview*
+• Total Transactions: ${transactions.length}
+• Recent Activity: ${transactions.slice(-5).length} recent transactions
+
+━━━━━━━━━━━━━━━━━━━━
+Generated on: ${new Date().toLocaleDateString('en-IN')}
+
+Powered by Tatva Business Manager`;
+    
+    return report;
+  };
+
+  const handleWhatsAppShare = () => {
+    if (!whatsappNumber.trim()) {
+      toast.error('Please enter a WhatsApp number');
+      return;
+    }
+    
+    // Clean the phone number (remove spaces, dashes, etc)
+    const cleanNumber = whatsappNumber.replace(/\D/g, '');
+    
+    if (cleanNumber.length < 10) {
+      toast.error('Please enter a valid phone number');
+      return;
+    }
+    
+    // Generate the report
+    const report = generateAnalysisReport();
+    
+    // Encode the message for URL
+    const encodedMessage = encodeURIComponent(report);
+    
+    // Create WhatsApp URL
+    const whatsappUrl = `https://wa.me/${cleanNumber}?text=${encodedMessage}`;
+    
+    // Open WhatsApp
+    window.open(whatsappUrl, '_blank');
+    
+    toast.success('Opening WhatsApp...');
+    setIsWhatsAppDialogOpen(false);
+    setWhatsappNumber('');
+  };
+
   const handleExcelExport = () => {
     const transactions = db.getTransactions();
     const products = db.getProducts();
@@ -164,18 +238,18 @@ export default function Integrations() {
   return (
     <div className="space-y-6 p-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Integrations</h1>
-        <p className="text-slate-600 mt-1">Connect your favorite tools and automate workflows</p>
+        <h1 className="text-3xl font-bold">Integrations</h1>
+        <p className="text-muted-foreground/80 mt-1">Connect your favorite tools and automate workflows</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="border-l-4 border-l-blue-500">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Active Integrations</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Active Integrations</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <p className="text-2xl font-bold text-slate-900">
+              <p className="text-2xl font-bold">
                 {integrations.filter(i => i.enabled).length}
               </p>
               <CheckCircle2 className="w-8 h-8 text-blue-500" />
@@ -185,11 +259,11 @@ export default function Integrations() {
 
         <Card className="border-l-4 border-l-emerald-500">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Available Integrations</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Available Integrations</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <p className="text-2xl font-bold text-slate-900">{integrationTemplates.length}</p>
+              <p className="text-2xl font-bold">{integrationTemplates.length}</p>
               <Zap className="w-8 h-8 text-emerald-500" />
             </div>
           </CardContent>
@@ -197,11 +271,11 @@ export default function Integrations() {
 
         <Card className="border-l-4 border-l-violet-500">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Auto-Sync Enabled</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Auto-Sync Enabled</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <p className="text-2xl font-bold text-slate-900">
+              <p className="text-2xl font-bold">
                 {integrations.filter(i => i.enabled && i.settings?.autoSync).length}
               </p>
               <Settings className="w-8 h-8 text-violet-500" />
@@ -235,10 +309,8 @@ export default function Integrations() {
                           <CardDescription className="mt-1">{template.description}</CardDescription>
                         </div>
                       </div>
-                      {status?.enabled ? (
+                      {status?.enabled && (
                         <Badge className="bg-emerald-500">Connected</Badge>
-                      ) : (
-                        <Badge variant="outline">Not Connected</Badge>
                       )}
                     </div>
                   </CardHeader>
@@ -261,6 +333,14 @@ export default function Integrations() {
                           <Download className="w-4 h-4 mr-2" />
                           Export to Excel
                         </Button>
+                      ) : template.type === 'whatsapp' ? (
+                        <Button
+                          onClick={() => setIsWhatsAppDialogOpen(true)}
+                          className="flex-1"
+                        >
+                          <MessageSquare className="w-4 h-4 mr-2" />
+                          Share Report
+                        </Button>
                       ) : (
                         <Button
                           onClick={() => handleToggleIntegration(template)}
@@ -270,7 +350,7 @@ export default function Integrations() {
                           {status?.enabled ? 'Disconnect' : 'Connect'}
                         </Button>
                       )}
-                      {status?.enabled && (
+                      {status?.enabled && template.type !== 'whatsapp' && (
                         <Button
                           variant="outline"
                           size="icon"
@@ -412,6 +492,63 @@ export default function Integrations() {
               </Button>
               <Button onClick={handleSaveConfig} className="flex-1">
                 Save & Connect
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* WhatsApp Share Dialog */}
+      <Dialog open={isWhatsAppDialogOpen} onOpenChange={setIsWhatsAppDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-green-600" />
+              Share Analysis Report via WhatsApp
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="whatsappNumber">WhatsApp Number</Label>
+              <Input
+                id="whatsappNumber"
+                type="tel"
+                value={whatsappNumber}
+                onChange={(e) => setWhatsappNumber(e.target.value)}
+                placeholder="e.g., +919876543210 or 9876543210"
+              />
+              <p className="text-xs text-muted-foreground">
+                Enter the phone number with country code (e.g., +91 for India)
+              </p>
+            </div>
+
+            <div className="p-4 bg-muted rounded-lg">
+              <h4 className="text-sm font-medium mb-2">Report Preview:</h4>
+              <ul className="text-xs text-muted-foreground space-y-1">
+                <li>• Financial Summary (Income, Expenses, Profit)</li>
+                <li>• Inventory Status</li>
+                <li>• Transaction Overview</li>
+                <li>• Low Stock Alerts</li>
+              </ul>
+            </div>
+
+            <div className="flex gap-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsWhatsAppDialogOpen(false);
+                  setWhatsappNumber('');
+                }}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleWhatsAppShare} 
+                className="flex-1 bg-green-600 hover:bg-green-700"
+              >
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Share on WhatsApp
               </Button>
             </div>
           </div>

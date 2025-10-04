@@ -10,6 +10,8 @@ import { analytics } from '@/lib/analytics';
 import { Mic, MicOff, Send, Bot, User, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { usePreferences } from '@/contexts/PreferencesContext';
+import { useTranslations, type Language } from '@/lib/translations';
 
 interface Message {
   id: string;
@@ -19,6 +21,9 @@ interface Message {
 }
 
 export default function Assistant() {
+  const { language: contextLanguage } = usePreferences();
+  const t = useTranslations((contextLanguage || 'en') as Language);
+  
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -191,11 +196,11 @@ export default function Assistant() {
     <div className="h-[calc(100vh-8rem)] flex flex-col p-6">
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
+          <h1 className="text-3xl font-bold flex items-center gap-2">
             <Sparkles className="w-8 h-8 text-blue-600" />
-            Smart Assistant
+            {t('smartAssistant')}
           </h1>
-          <p className="text-slate-600 mt-1">Chat or speak to manage your business</p>
+          <p className="text-muted-foreground/80 mt-1">{t('chatOrSpeak')}</p>
         </div>
         <Select value={language} onValueChange={(v: any) => setLanguage(v)}>
           <SelectTrigger className="w-36">

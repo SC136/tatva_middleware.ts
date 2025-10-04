@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   LineChart,
   Line,
@@ -12,10 +12,15 @@ import {
   Scatter
 } from 'recharts';
 import { TrendingUp, TrendingDown, Activity } from 'lucide-react';
-import { useTransactions } from '@/hooks/useStorage';
-import { formatCurrency } from '@/lib/storage';
+import { db } from '@/lib/database';
+import { Transaction } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+
+// Helper function for currency formatting
+const formatCurrency = (amount: number, currency = '₹'): string => {
+  return `${currency}${amount.toLocaleString('en-IN')}`;
+};
 
 interface TrendData {
   date: string;
@@ -30,10 +35,22 @@ interface TrendChartProps {
 }
 
 export function TrendChart({ metric = 'profit', period = 'month' }: TrendChartProps) {
-  const { transactions } = useTransactions();
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedMetric, setSelectedMetric] = useState(metric);
   const [selectedPeriod, setSelectedPeriod] = useState(period);
   const [chartType, setChartType] = useState<'line' | 'scatter'>('line');
+
+  useEffect(() => {
+    setTransactions(db.getTransactions());
+    const unsubscribe = db.subscribe(() => {
+      setTransactions(db.getTransactions());
+    });
+    return () => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+    };
+  }, []);
 
   const trendData = React.useMemo(() => {
     const now = new Date();
@@ -46,7 +63,7 @@ export function TrendChart({ metric = 'profit', period = 'month' }: TrendChartPr
       const dateStr = date.toISOString().split('T')[0];
       
       const dayTransactions = transactions.filter(t => 
-        t.time.startsWith(dateStr)
+        t.date.startsWith(dateStr)
       );
       
       let value = 0;

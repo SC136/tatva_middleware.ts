@@ -27,43 +27,40 @@ import {
 import { ChartBar as BarChart3, Package, Wallet, FileText, Settings, CircleHelp as HelpCircle, BookOpen, TriangleAlert as AlertTriangle, CreditCard, Chrome as Home, LogOut, User, ChevronUp, Sparkles, Database, Zap, TrendingUp } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStats } from '@/hooks/useStorage';
+import { LanguageSwitcher } from './LanguageSwitcher';
+import { usePreferences } from '@/contexts/PreferencesContext';
+import { useTranslations, type Language } from '@/lib/translations';
 
 const navigationItems = [
   {
-    title: 'Dashboard',
+    titleKey: 'dashboard' as const,
     url: '/dashboard',
     icon: Home,
     isActive: true,
   },
   {
-    title: 'Smart Assistant',
+    titleKey: 'smartAssistant' as const,
     url: '/assistant',
     icon: Sparkles,
-    badge: 'New',
+    badge: 'new' as const,
   },
   {
-    title: 'Transactions',
+    titleKey: 'transactions' as const,
     url: '/transactions',
     icon: Wallet,
   },
   {
-    title: 'Inventory',
+    titleKey: 'inventory' as const,
     url: '/inventory',
     icon: Package,
   },
   {
-    title: 'Analytics',
+    titleKey: 'analytics' as const,
     url: '/analytics',
     icon: BarChart3,
   },
   {
-    title: 'Advanced Analytics',
-    url: '/advanced-analytics',
-    icon: TrendingUp,
-    badge: 'New',
-  },
-  {
-    title: 'Reports',
+    titleKey: 'reports' as const,
     url: '/reports',
     icon: FileText,
   },
@@ -71,18 +68,18 @@ const navigationItems = [
 
 const secondaryItems = [
   {
-    title: 'Integrations',
+    titleKey: 'integrations' as const,
     url: '/integrations',
     icon: Zap,
-    badge: 'New',
+    badge: 'new' as const,
   },
   {
-    title: 'Data Management',
+    titleKey: 'dataManagement' as const,
     url: '/data-management',
     icon: Database,
   },
   {
-    title: 'Learn',
+    titleKey: 'learn' as const,
     url: '/learn',
     icon: BookOpen,
   },
@@ -90,12 +87,12 @@ const secondaryItems = [
 
 const bottomItems = [
   {
-    title: 'Settings',
+    titleKey: 'settings' as const,
     url: '/settings',
     icon: Settings,
   },
   {
-    title: 'Help',
+    titleKey: 'help' as const,
     url: '/help',
     icon: HelpCircle,
   },
@@ -105,6 +102,8 @@ export function AppSidebar() {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const { todayStats } = useStats();
+  const { language } = usePreferences();
+  const t = useTranslations((language || 'en') as Language);
 
   const isActive = (path: string) => {
     if (path === '/dashboard') {
@@ -130,6 +129,9 @@ export function AppSidebar() {
               </NavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>
+          <SidebarMenuItem>
+            <LanguageSwitcher />
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
 
@@ -140,14 +142,14 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {navigationItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.titleKey}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)}>
                     <NavLink to={item.url}>
                       <item.icon />
-                      <span>{item.title}</span>
+                      <span>{t(item.titleKey)}</span>
                       {item.badge && (
                         <Badge variant="secondary" className="ml-auto text-xs">
-                          {item.badge}
+                          {t(item.badge)}
                         </Badge>
                       )}
                     </NavLink>
@@ -164,14 +166,14 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {secondaryItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.titleKey}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)}>
                     <NavLink to={item.url}>
                       <item.icon />
-                      <span>{item.title}</span>
+                      <span>{t(item.titleKey)}</span>
                       {item.badge && (
                         <Badge variant="secondary" className="ml-auto text-xs">
-                          {item.badge}
+                          {t(item.badge)}
                         </Badge>
                       )}
                     </NavLink>
@@ -182,14 +184,14 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Quick Stats */}
-        <SidebarGroup>
+        {/* Quick Stats - Hidden when collapsed */}
+        <SidebarGroup className="group-data-[collapsible=icon]:hidden">
           <SidebarGroupLabel>Today's Summary</SidebarGroupLabel>
           <SidebarGroupContent>
             <div className="space-y-2 px-2">
               <div className="rounded-lg bg-green-50 p-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-green-700">Income</span>
+                  <span className="text-xs text-green-700">{t('income')}</span>
                   <span className="text-sm font-semibold text-green-800">
                     ₹{todayStats.totalIncome.toLocaleString()}
                   </span>
@@ -197,7 +199,7 @@ export function AppSidebar() {
               </div>
               <div className="rounded-lg bg-red-50 p-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-red-700">Expenses</span>
+                  <span className="text-xs text-red-700">{t('expense')}</span>
                   <span className="text-sm font-semibold text-red-800">
                     ₹{todayStats.totalExpenses.toLocaleString()}
                   </span>
@@ -205,7 +207,7 @@ export function AppSidebar() {
               </div>
               <div className="rounded-lg bg-blue-50 p-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-blue-700">Profit</span>
+                  <span className="text-xs text-blue-700">{t('profit')}</span>
                   <span className={`text-sm font-semibold ${
                     todayStats.netProfit >= 0 ? 'text-blue-800' : 'text-red-800'
                   }`}>
@@ -222,11 +224,11 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {bottomItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.titleKey}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)}>
                     <NavLink to={item.url}>
                       <item.icon />
-                      <span>{item.title}</span>
+                      <span>{t(item.titleKey)}</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -246,13 +248,13 @@ export function AppSidebar() {
                   className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
                   <Avatar className="h-8 w-8 rounded-lg">
-                    <AvatarImage src={user?.avatar} alt={user?.name} />
+                    <AvatarImage src={user?.user_metadata?.avatar_url} alt={user?.user_metadata?.full_name || user?.email} />
                     <AvatarFallback className="rounded-lg">
-                      {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                      {user?.user_metadata?.full_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
                     </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">{user?.name || 'User'}</span>
+                    <span className="truncate font-semibold">{user?.user_metadata?.full_name || 'User'}</span>
                     <span className="truncate text-xs">{user?.email}</span>
                   </div>
                   <ChevronUp className="ml-auto size-4" />
@@ -267,13 +269,13 @@ export function AppSidebar() {
                 <DropdownMenuLabel className="p-0 font-normal">
                   <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                     <Avatar className="h-8 w-8 rounded-lg">
-                      <AvatarImage src={user?.avatar} alt={user?.name} />
+                      <AvatarImage src={user?.user_metadata?.avatar_url} alt={user?.user_metadata?.full_name || user?.email} />
                       <AvatarFallback className="rounded-lg">
-                        {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                        {user?.user_metadata?.full_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
                     <div className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-semibold">{user?.name || 'User'}</span>
+                      <span className="truncate font-semibold">{user?.user_metadata?.full_name || 'User'}</span>
                       <span className="truncate text-xs">{user?.email}</span>
                     </div>
                   </div>

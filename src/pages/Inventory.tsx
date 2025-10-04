@@ -11,8 +11,12 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Package, TriangleAlert as AlertTriangle, Search, CreditCard as Edit, Trash2, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
+import { usePreferences } from '@/contexts/PreferencesContext';
+import { useTranslations, type Language } from '@/lib/translations';
 
 export default function Inventory() {
+  const { language } = usePreferences();
+  const t = useTranslations((language || 'en') as Language);
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -35,7 +39,11 @@ export default function Inventory() {
   useEffect(() => {
     loadProducts();
     const unsubscribe = db.subscribe(() => loadProducts());
-    return unsubscribe;
+    return () => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -154,14 +162,14 @@ export default function Inventory() {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Inventory Management</h1>
-          <p className="text-slate-600 mt-1">Manage your product catalog and stock levels</p>
+          <h1 className="text-3xl font-bold">{t('inventoryManagement')}</h1>
+          <p className="text-muted-foreground/80 mt-1">{t('manageProductCatalog')}</p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => { resetForm(); setEditingProduct(null); }} className="bg-blue-600 hover:bg-blue-700">
               <Plus className="w-4 h-4 mr-2" />
-              Add Product
+              {t('addProduct')}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -284,11 +292,11 @@ export default function Inventory() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="border-l-4 border-l-blue-500">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Total Products</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('totalProducts')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <p className="text-2xl font-bold text-slate-900">{products.length}</p>
+              <p className="text-2xl font-bold">{products.length}</p>
               <Package className="w-8 h-8 text-blue-500" />
             </div>
           </CardContent>
@@ -296,11 +304,11 @@ export default function Inventory() {
 
         <Card className="border-l-4 border-l-amber-500">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Low Stock Items</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('lowStockItems')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <p className="text-2xl font-bold text-slate-900">{lowStockProducts.length}</p>
+              <p className="text-2xl font-bold">{lowStockProducts.length}</p>
               <AlertTriangle className="w-8 h-8 text-amber-500" />
             </div>
           </CardContent>
@@ -308,11 +316,11 @@ export default function Inventory() {
 
         <Card className="border-l-4 border-l-emerald-500">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Total Value</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('totalValue')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <p className="text-2xl font-bold text-slate-900">₹{totalValue.toLocaleString()}</p>
+              <p className="text-2xl font-bold">₹{totalValue.toLocaleString()}</p>
               <TrendingUp className="w-8 h-8 text-emerald-500" />
             </div>
           </CardContent>
@@ -320,11 +328,11 @@ export default function Inventory() {
 
         <Card className="border-l-4 border-l-violet-500">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Potential Profit</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('potentialProfit')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <p className="text-2xl font-bold text-slate-900">₹{potentialProfit.toLocaleString()}</p>
+              <p className="text-2xl font-bold">₹{potentialProfit.toLocaleString()}</p>
               <TrendingUp className="w-8 h-8 text-violet-500" />
             </div>
           </CardContent>
@@ -365,12 +373,12 @@ export default function Inventory() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Product Catalog</CardTitle>
+            <CardTitle>{t('productCatalog')}</CardTitle>
             <div className="flex gap-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input
-                  placeholder="Search products..."
+                  placeholder={t('searchProducts')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 w-64"
@@ -378,7 +386,7 @@ export default function Inventory() {
               </div>
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                 <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Category" />
+                  <SelectValue placeholder={t('category')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
@@ -394,21 +402,21 @@ export default function Inventory() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Product</TableHead>
-                <TableHead>SKU</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Stock</TableHead>
-                <TableHead>Cost Price</TableHead>
-                <TableHead>Selling Price</TableHead>
+                <TableHead>{t('product')}</TableHead>
+                <TableHead>{t('sku')}</TableHead>
+                <TableHead>{t('category')}</TableHead>
+                <TableHead>{t('stock')}</TableHead>
+                <TableHead>{t('costPrice')}</TableHead>
+                <TableHead>{t('sellingPrice')}</TableHead>
                 <TableHead>Margin</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>{t('actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredProducts.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center text-slate-500 py-8">
-                    No products found. Add your first product to get started.
+                    {t('noProductsFound')}
                   </TableCell>
                 </TableRow>
               ) : (

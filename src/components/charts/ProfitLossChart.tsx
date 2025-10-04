@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   AreaChart,
   Area,
@@ -13,10 +13,15 @@ import {
   Line
 } from 'recharts';
 import { TrendingUp, TrendingDown, BarChart3, Activity } from 'lucide-react';
-import { useTransactions } from '@/hooks/useStorage';
-import { formatCurrency } from '@/lib/storage';
+import { db } from '@/lib/database';
+import { Transaction } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+// Helper function for currency formatting
+const formatCurrency = (amount: number, currency = '₹'): string => {
+  return `${currency}${amount.toLocaleString('en-IN')}`;
+};
 
 interface ProfitLossData {
   date: string;
@@ -31,9 +36,21 @@ interface ProfitLossChartProps {
 }
 
 export function ProfitLossChart({ period = 'month' }: ProfitLossChartProps) {
-  const { transactions } = useTransactions();
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [chartType, setChartType] = useState<'area' | 'composed'>('area');
   const [selectedPeriod, setSelectedPeriod] = useState(period);
+
+  useEffect(() => {
+    setTransactions(db.getTransactions());
+    const unsubscribe = db.subscribe(() => {
+      setTransactions(db.getTransactions());
+    });
+    return () => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+    };
+  }, []);
 
   const chartData = React.useMemo(() => {
     const now = new Date();
@@ -56,7 +73,7 @@ export function ProfitLossChart({ period = 'month' }: ProfitLossChartProps) {
       const dateStr = date.toISOString().split('T')[0];
       
       const dayTransactions = transactions.filter(t => 
-        t.time.startsWith(dateStr)
+        t.date.startsWith(dateStr)
       );
       
       const income = dayTransactions

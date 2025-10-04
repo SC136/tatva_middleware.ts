@@ -8,7 +8,6 @@ import {
   ExternalLink, 
   Star, 
   Clock, 
-  Users,
   TrendingUp,
   PiggyBank,
   Calculator,
@@ -16,60 +15,75 @@ import {
   Award,
   CheckCircle
 } from "lucide-react";
+import { usePreferences } from "@/contexts/PreferencesContext";
 
 export default function Learn() {
+  const { language } = usePreferences();
+  
+  const handleStartCourse = (videoUrl: string) => {
+    window.open(videoUrl, '_blank', 'noopener,noreferrer');
+  };
+
   const courses = [
     {
       id: 1,
       title: "Small Business Financial Management",
       titleHindi: "छोटे व्यापार की वित्तीय प्रबंधन",
       description: "Master the basics of managing finances for your small business",
+      descriptionHindi: "अपने छोटे व्यापार के लिए वित्त प्रबंधन की मूल बातें सीखें",
       level: "Beginner",
       duration: "45 mins",
       lessons: 8,
       rating: 4.8,
       language: "Hindi + English",
       category: "Finance Basics",
-      color: "bg-success/10 text-success border-success/20"
+      color: "bg-success/10 text-success border-success/20",
+      videoUrl: "https://youtu.be/MLIG1VVB8vE?si=R7sqGyekzBEVJjcg"
     },
     {
       id: 2,
       title: "Profit & Loss Understanding",
       titleHindi: "लाभ-हानि की समझ",
       description: "Learn how to calculate and improve your business profitability",
+      descriptionHindi: "अपने व्यापार की लाभप्रदता की गणना और सुधार करना सीखें",
       level: "Intermediate", 
       duration: "30 mins",
       lessons: 5,
       rating: 4.9,
       language: "Marathi + Hindi",
       category: "Analytics",
-      color: "bg-primary/10 text-primary border-primary/20"
+      color: "bg-primary/10 text-primary border-primary/20",
+      videoUrl: "https://youtu.be/hrSUq4wcd0g?si=9tng_-nQDfUj5it1"
     },
     {
       id: 3,
       title: "GST & Tax Planning",
       titleHindi: "जीएसटी और कर नियोजन",
       description: "Navigate GST requirements and optimize your tax planning",
+      descriptionHindi: "जीएसटी आवश्यकताओं को समझें और अपनी कर योजना को अनुकूलित करें",
       level: "Advanced",
       duration: "60 mins", 
       lessons: 12,
       rating: 4.7,
       language: "English + Hindi",
       category: "Legal & Tax",
-      color: "bg-warning/10 text-warning border-warning/20"
+      color: "bg-warning/10 text-warning border-warning/20",
+      videoUrl: "https://youtu.be/tIJLoqdwev0?si=i4O9O83p3idSGkTJ"
     },
     {
       id: 4,
       title: "Digital Payment Solutions",
       titleHindi: "डिजिटल भुगतान समाधान",
       description: "Understand and implement digital payment systems",
+      descriptionHindi: "डिजिटल भुगतान प्रणालियों को समझें और लागू करें",
       level: "Beginner",
       duration: "25 mins",
       lessons: 4,
       rating: 4.6,
       language: "Hindi",
       category: "Technology",
-      color: "bg-info/10 text-info border-info/20"
+      color: "bg-info/10 text-info border-info/20",
+      videoUrl: "https://youtu.be/EXNP78eK6uA?si=rhSwQRciKQcTacnn"
     }
   ];
 
@@ -112,30 +126,6 @@ export default function Learn() {
     }
   ];
 
-  const videos = [
-    {
-      title: "How to Use Voice Commands Effectively",
-      titleHindi: "वॉयस कमांड का प्रभावी उपयोग कैसे करें",
-      duration: "8:32",
-      views: "2.1K",
-      category: "Tutorial"
-    },
-    {
-      title: "Reading Your Financial Dashboard",
-      titleHindi: "अपना वित्तीय डैशबोर्ड पढ़ना",
-      duration: "12:15", 
-      views: "1.8K",
-      category: "Analytics"
-    },
-    {
-      title: "Setting Up Categories for Your Business",
-      titleHindi: "अपने व्यापार के लिए श्रेणियां सेट करना",
-      duration: "6:45",
-      views: "3.2K",
-      category: "Setup"
-    }
-  ];
-
   const achievements = [
     { name: "First Week Complete", icon: CheckCircle, earned: true },
     { name: "Voice Expert", icon: Award, earned: true },
@@ -143,23 +133,83 @@ export default function Learn() {
     { name: "Profit Master", icon: Target, earned: false }
   ];
 
+  const getTranslation = (key: string) => {
+    const translations: Record<string, Record<string, string>> = {
+      en: {
+        title: "Learning Center",
+        subtitle: "Improve your business skills with our courses and tips",
+        myProgress: "My Progress",
+        browseAll: "Browse All",
+        achievements: "Your Achievements",
+        trackProgress: "Track your learning progress",
+        courses: "Courses",
+        dailyTips: "Daily Tips",
+        videoTutorials: "Video Tutorials",
+        resources: "Resources",
+        startCourse: "Start Course",
+        beginner: "Beginner",
+        intermediate: "Intermediate",
+        advanced: "Advanced",
+        lessons: "lessons",
+        mins: "mins"
+      },
+      hi: {
+        title: "शिक्षा केंद्र",
+        subtitle: "अपने व्यवसाय कौशल को हमारे पाठ्यक्रम और सुझावों से सुधारें",
+        myProgress: "मेरी प्रगति",
+        browseAll: "सभी देखें",
+        achievements: "आपकी उपलब्धियां",
+        trackProgress: "अपनी सीखने की प्रगति ट्रैक करें",
+        courses: "पाठ्यक्रम",
+        dailyTips: "दैनिक सुझाव",
+        videoTutorials: "वीडियो ट्यूटोरियल",
+        resources: "संसाधन",
+        startCourse: "पाठ्यक्रम शुरू करें",
+        beginner: "शुरुआती",
+        intermediate: "मध्यवर्ती",
+        advanced: "उन्नत",
+        lessons: "पाठ",
+        mins: "मिनट"
+      },
+      mr: {
+        title: "शिक्षण केंद्र",
+        subtitle: "आमच्या अभ्यासक्रम आणि सुचनांसह तुमचे व्यवसाय कौशल्य सुधारा",
+        myProgress: "माझी प्रगती",
+        browseAll: "सर्व पहा",
+        achievements: "तुमची उपलब्धी",
+        trackProgress: "तुमची शिकण्याची प्रगती ट्रॅक करा",
+        courses: "अभ्यासक्रम",
+        dailyTips: "दैनिक सूचना",
+        videoTutorials: "व्हिडिओ ट्यूटोरियल",
+        resources: "संसाधने",
+        startCourse: "अभ्यासक्रम सुरू करा",
+        beginner: "नवशिक्या",
+        intermediate: "मध्यम",
+        advanced: "प्रगत",
+        lessons: "धडे",
+        mins: "मिनिटे"
+      }
+    };
+    return translations[language || 'en']?.[key] || translations['en'][key];
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Learning Center</h1>
+          <h1 className="text-3xl font-bold">{getTranslation('title')}</h1>
           <p className="text-muted-foreground">
-            शिक्षा केंद्र - Improve your business skills with our courses and tips
+            {getTranslation('subtitle')}
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm">
             <Star className="mr-2 h-4 w-4" />
-            My Progress
+            {getTranslation('myProgress')}
           </Button>
           <Button size="sm" className="bg-gradient-primary">
             <BookOpen className="mr-2 h-4 w-4" />
-            Browse All
+            {getTranslation('browseAll')}
           </Button>
         </div>
       </div>
@@ -169,9 +219,9 @@ export default function Learn() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Award className="h-5 w-5 text-warning" />
-            Your Achievements
+            {getTranslation('achievements')}
           </CardTitle>
-          <CardDescription>Track your learning progress</CardDescription>
+          <CardDescription>{getTranslation('trackProgress')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -194,10 +244,9 @@ export default function Learn() {
 
       <Tabs defaultValue="courses" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="courses">Courses</TabsTrigger>
-          <TabsTrigger value="tips">Daily Tips</TabsTrigger>
-          <TabsTrigger value="videos">Video Tutorials</TabsTrigger>
-          <TabsTrigger value="resources">Resources</TabsTrigger>
+          <TabsTrigger value="courses">{getTranslation('courses')}</TabsTrigger>
+          <TabsTrigger value="tips">{getTranslation('dailyTips')}</TabsTrigger>
+          <TabsTrigger value="resources">{getTranslation('resources')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="courses" className="space-y-4">
@@ -207,11 +256,18 @@ export default function Learn() {
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="mb-1">{course.title}</CardTitle>
-                      <p className="text-sm text-muted-foreground mb-2">{course.titleHindi}</p>
-                      <CardDescription>{course.description}</CardDescription>
+                      <CardTitle className="mb-2">
+                        {language === 'en' ? course.title : course.titleHindi}
+                      </CardTitle>
+                      <CardDescription>
+                        {language === 'en' ? course.description : course.descriptionHindi}
+                      </CardDescription>
                     </div>
-                    <Badge variant="secondary">{course.level}</Badge>
+                    <Badge variant="secondary">
+                      {course.level === 'Beginner' && getTranslation('beginner')}
+                      {course.level === 'Intermediate' && getTranslation('intermediate')}
+                      {course.level === 'Advanced' && getTranslation('advanced')}
+                    </Badge>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -219,11 +275,11 @@ export default function Learn() {
                     <div className="flex items-center justify-between text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />
-                        {course.duration}
+                        {course.duration.replace('mins', getTranslation('mins'))}
                       </div>
                       <div className="flex items-center gap-1">
                         <BookOpen className="h-4 w-4" />
-                        {course.lessons} lessons
+                        {course.lessons} {getTranslation('lessons')}
                       </div>
                       <div className="flex items-center gap-1">
                         <Star className="h-4 w-4 fill-current text-yellow-500" />
@@ -236,9 +292,13 @@ export default function Learn() {
                         <Badge variant="outline" className="mr-2">{course.language}</Badge>
                         <Badge variant="outline">{course.category}</Badge>
                       </div>
-                      <Button size="sm" className="bg-gradient-success">
+                      <Button 
+                        size="sm" 
+                        className="bg-gradient-success"
+                        onClick={() => handleStartCourse(course.videoUrl)}
+                      >
                         <Play className="mr-2 h-4 w-4" />
-                        Start Course
+                        {getTranslation('startCourse')}
                       </Button>
                     </div>
                   </div>
@@ -252,48 +312,24 @@ export default function Learn() {
           {tips.map((tipCategory, index) => (
             <Card key={index} className="shadow-card">
               <CardHeader>
-                <CardTitle>{tipCategory.category}</CardTitle>
-                <CardDescription className="text-base">{tipCategory.categoryHindi}</CardDescription>
+                <CardTitle>
+                  {language === 'en' ? tipCategory.category : tipCategory.categoryHindi}
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {tipCategory.tips.map((tip, tipIndex) => (
                   <div key={tipIndex} className="p-4 bg-muted/50 rounded-lg">
-                    <h4 className="font-medium mb-1">{tip.title}</h4>
-                    <p className="text-sm text-muted-foreground mb-2">{tip.titleHindi}</p>
-                    <p className="text-sm mb-1">{tip.content}</p>
-                    <p className="text-sm text-muted-foreground italic">{tip.contentHindi}</p>
+                    <h4 className="font-medium mb-2">
+                      {language === 'en' ? tip.title : tip.titleHindi}
+                    </h4>
+                    <p className="text-sm">
+                      {language === 'en' ? tip.content : tip.contentHindi}
+                    </p>
                   </div>
                 ))}
               </CardContent>
             </Card>
           ))}
-        </TabsContent>
-
-        <TabsContent value="videos" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {videos.map((video, index) => (
-              <Card key={index} className="shadow-card hover:shadow-lg transition-shadow cursor-pointer group">
-                <CardContent className="p-4">
-                  <div className="aspect-video bg-muted rounded-lg mb-3 flex items-center justify-center group-hover:bg-muted/80 transition-colors">
-                    <Play className="h-12 w-12 text-muted-foreground group-hover:text-primary transition-colors" />
-                  </div>
-                  
-                  <h3 className="font-medium mb-1 line-clamp-2">{video.title}</h3>
-                  <p className="text-sm text-muted-foreground mb-2">{video.titleHindi}</p>
-                  
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <span>{video.duration}</span>
-                    <div className="flex items-center gap-1">
-                      <Users className="h-4 w-4" />
-                      {video.views}
-                    </div>
-                  </div>
-                  
-                  <Badge variant="outline" className="mt-2">{video.category}</Badge>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
         </TabsContent>
 
         <TabsContent value="resources" className="space-y-4">

@@ -122,4 +122,40 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Custom Scrollbar Styling */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(220 26% 15%) hsl(220 26% 8%);
+  }
+
+  /* Webkit browsers (Chrome, Safari, Edge) */
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: hsl(220 26% 8%);
+    border-radius: 4px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: hsl(220 26% 15%);
+    border-radius: 4px;
+    border: 2px solid hsl(220 26% 8%);
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: hsl(217 91% 60% / 0.5);
+  }
+
+  *::-webkit-scrollbar-thumb:active {
+    background: hsl(217 91% 60% / 0.7);
+  }
+
+  /* Hide scrollbar arrows */
+  *::-webkit-scrollbar-button {
+    display: none;
+  }
 }

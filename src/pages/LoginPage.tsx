@@ -64,7 +64,7 @@ export function LoginPage() {
 
       if (data.session) {
         toast({ title: "Welcome back!", description: "Logged in successfully" });
-        navigate("/");
+        navigate("/dashboard");
       } else {
         throw new Error("No session established");
       }
@@ -112,7 +112,7 @@ export function LoginPage() {
         description: "Please check your email to verify your account.",
       });
 
-      if (data.session) navigate("/");
+      if (data.session) navigate("/dashboard");
       else setError("Please check your email to verify your account before logging in.");
     } catch (err: any) {
       setError(err.message || "Failed to create account. Please try again.");

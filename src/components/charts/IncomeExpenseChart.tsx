@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   LineChart,
   Line,
@@ -11,8 +11,13 @@ import {
   BarChart,
   Bar
 } from 'recharts';
-import { useTransactions } from '@/hooks/useStorage';
-import { formatCurrency } from '@/lib/storage';
+import { db } from '@/lib/database';
+import { Transaction } from '@/types';
+
+// Helper function for currency formatting
+const formatCurrency = (amount: number, currency = '₹'): string => {
+  return `${currency}${amount.toLocaleString('en-IN')}`;
+};
 
 interface ChartData {
   date: string;
@@ -27,7 +32,19 @@ interface IncomeExpenseChartProps {
 }
 
 export function IncomeExpenseChart({ type = 'line', period = 'week' }: IncomeExpenseChartProps) {
-  const { transactions } = useTransactions();
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+
+  useEffect(() => {
+    setTransactions(db.getTransactions());
+    const unsubscribe = db.subscribe(() => {
+      setTransactions(db.getTransactions());
+    });
+    return () => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+    };
+  }, []);
 
   const chartData = React.useMemo(() => {
     const now = new Date();
@@ -42,7 +59,7 @@ export function IncomeExpenseChart({ type = 'line', period = 'week' }: IncomeExp
       const dateStr = date.toISOString().split('T')[0];
       
       const dayTransactions = transactions.filter(t => 
-        t.time.startsWith(dateStr)
+        t.date.startsWith(dateStr)
       );
       
       const income = dayTransactions

@@ -21,7 +21,11 @@ export default function AdvancedAnalytics() {
   useEffect(() => {
     loadAnalytics();
     const unsubscribe = db.subscribe(() => loadAnalytics());
-    return unsubscribe;
+    return () => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+    };
   }, []);
 
   const loadAnalytics = () => {
@@ -57,7 +61,7 @@ export default function AdvancedAnalytics() {
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-slate-600">Loading analytics...</p>
+          <p className="text-muted-foreground">Loading analytics...</p>
         </div>
       </div>
     );
@@ -91,20 +95,20 @@ export default function AdvancedAnalytics() {
       </div>
 
       {alerts.length > 0 && (
-        <Card className="border-2 border-amber-500/30 bg-amber-500/5">
+        <Card>
           <CardHeader>
-            <CardTitle className="flex items-center text-amber-400">
-              <AlertTriangle className="w-5 h-5 mr-2" />
+            <CardTitle className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+              <AlertTriangle className="w-5 h-5" />
               Smart Alerts
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {alerts.map((alert, idx) => (
-                <div key={idx} className="flex items-center justify-between bg-card p-3 rounded-lg border border-border">
-                  <p className="text-foreground">{alert.message}</p>
+                <div key={idx} className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-lg">
+                  <p className="font-medium text-amber-900 dark:text-amber-100">{alert.message}</p>
                   <Badge variant="outline" className={
-                    alert.severity === 'error' ? 'border-red-500 text-red-400' : 'border-amber-500 text-amber-400'
+                    alert.severity === 'error' ? 'border-red-500 text-red-400 dark:text-red-300' : 'border-amber-500 text-amber-600 dark:text-amber-400'
                   }>
                     {alert.severity}
                   </Badge>
@@ -218,7 +222,7 @@ export default function AdvancedAnalytics() {
                   cx="50%"
                   cy="50%"
                   outerRadius={100}
-                  label={(entry) => `${entry.category}: ${entry.percentage.toFixed(0)}%`}
+                  label={(entry: any) => `${entry.category}: ${typeof entry.percentage === 'number' ? entry.percentage.toFixed(0) : '0'}%`}
                 >
                   {metrics.topCategories.slice(0, 7).map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

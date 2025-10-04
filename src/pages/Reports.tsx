@@ -9,24 +9,111 @@ import {
   BarChart3, 
   TrendingUp,
   Calendar,
-  Filter,
-  Share,
-  Eye,
-  Clock,
-  Activity,
-  DollarSign
+  DollarSign,
+  Clock
 } from "lucide-react";
-import { ProfitLossChart } from "@/components/charts/ProfitLossChart";
-import { CategoryChart } from "@/components/charts/CategoryChart";
-import { IncomeExpenseChart } from "@/components/charts/IncomeExpenseChart";
-import { TrendChart } from "@/components/charts/TrendChart";
-import { useTransactions } from "@/hooks/useStorage";
-import { formatCurrency } from "@/lib/storage";
+import { db } from '@/lib/database';
+import { Transaction } from '@/types';
+import { 
+  generatePDFReport, 
+  generateExcelReport, 
+  calculateReportStats,
+  generateTodaysSummary,
+  generateWeeklyPL,
+  generateCategoryBreakdownReport
+} from '@/lib/reportGenerator';
+import { useToast } from '@/hooks/use-toast';
+
+// Helper function for currency formatting
+const formatCurrency = (amount: number, currency = '₹'): string => {
+  return `${currency}${amount.toLocaleString('en-IN')}`;
+};
 
 export default function Reports() {
-  const { transactions } = useTransactions();
-  const [selectedView, setSelectedView] = useState<'reports' | 'analytics'>('reports');
-  const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'quarter' | 'year'>('month');
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const { toast } = useToast();
+
+  React.useEffect(() => {
+    loadData();
+    const unsubscribe = db.subscribe(() => loadData());
+    return () => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+    };
+  }, []);
+
+  const loadData = () => {
+    setTransactions(db.getTransactions());
+  };
+
+  // Handle report downloads
+  const handleDownloadPDF = (reportTitle: string) => {
+    try {
+      const stats = calculateReportStats(transactions);
+      generatePDFReport(reportTitle, transactions, stats);
+      toast({
+        title: "Report Downloaded",
+        description: `${reportTitle} has been downloaded as PDF.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Download Failed",
+        description: "Failed to generate PDF report.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDownloadExcel = (reportTitle: string) => {
+    try {
+      const stats = calculateReportStats(transactions);
+      generateExcelReport(reportTitle, transactions, stats);
+      toast({
+        title: "Report Downloaded",
+        description: `${reportTitle} has been downloaded as Excel.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Download Failed",
+        description: "Failed to generate Excel report.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Quick report handlers
+  const handleQuickReport = (reportType: string) => {
+    try {
+      switch (reportType) {
+        case "Today's Summary":
+          generateTodaysSummary(transactions);
+          break;
+        case "Weekly P&L":
+          generateWeeklyPL(transactions);
+          break;
+        case "Category Breakdown":
+          generateCategoryBreakdownReport(transactions);
+          break;
+        default:
+          toast({
+            title: "Coming Soon",
+            description: `${reportType} report generation will be available soon.`,
+          });
+          return;
+      }
+      toast({
+        title: "Report Generated",
+        description: `${reportType} report has been generated successfully.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Generation Failed",
+        description: "Failed to generate report.",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Generate sample report data based on actual transactions
   const reportStats = React.useMemo(() => {
@@ -132,37 +219,11 @@ export default function Reports() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-            Reports & Analytics
+            Reports
           </h1>
           <p className="text-muted-foreground">
-            Generate comprehensive business reports with interactive visualizations
+            Generate comprehensive business reports and download them
           </p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant={selectedView === 'reports' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setSelectedView('reports')}
-          >
-            <FileText className="mr-2 h-4 w-4" />
-            Reports
-          </Button>
-          <Button
-            variant={selectedView === 'analytics' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setSelectedView('analytics')}
-          >
-            <Activity className="mr-2 h-4 w-4" />
-            Analytics
-          </Button>
-          <Button variant="outline" size="sm">
-            <Filter className="mr-2 h-4 w-4" />
-            Filter
-          </Button>
-          <Button size="sm" className="bg-gradient-to-r from-primary to-primary/80">
-            <FileText className="mr-2 h-4 w-4" />
-            New Report
-          </Button>
         </div>
       </div>
 
@@ -221,94 +282,25 @@ export default function Reports() {
         </Card>
       </div>
 
-      {selectedView === 'analytics' && (
-        <>
-          {/* Period Selector */}
-          <div className="flex gap-2">
-            {(['week', 'month', 'quarter', 'year'] as const).map((period) => (
-              <Button
-                key={period}
-                variant={selectedPeriod === period ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setSelectedPeriod(period)}
-              >
-                <Calendar className="mr-2 h-4 w-4" />
-                {period.charAt(0).toUpperCase() + period.slice(1)}
-              </Button>
-            ))}
-          </div>
 
-          {/* Interactive Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Profit & Loss Chart */}
-            <Card className="shadow-md">
-              <CardHeader>
-                <CardTitle>Profit & Loss Analysis</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ProfitLossChart period={selectedPeriod} />
-              </CardContent>
-            </Card>
-            
-            {/* Category Breakdown */}
-            <Card className="shadow-md">
-              <CardHeader>
-                <CardTitle>Revenue by Category</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CategoryChart type="pie" transactionType="income" />
-              </CardContent>
-            </Card>
-          </div>
-          
-          {/* Income vs Expenses Trend */}
-          <Card className="shadow-md">
-            <CardHeader>
-              <CardTitle>Income vs Expenses Trend</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <IncomeExpenseChart type="line" period={selectedPeriod} />
-            </CardContent>
-          </Card>
-          
-          {/* Detailed Trend Analysis */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="shadow-md">
-              <CardHeader>
-                <CardTitle>Income Trend Analysis</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <TrendChart metric="income" period={selectedPeriod} />
-              </CardContent>
-            </Card>
-            
-            <Card className="shadow-md">
-              <CardHeader>
-                <CardTitle>Expense Trend Analysis</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <TrendChart metric="expenses" period={selectedPeriod} />
-              </CardContent>
-            </Card>
-          </div>
-        </>
-      )}
-
-      {selectedView === 'reports' && (
-        <>
           {/* Quick Reports */}
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Quick Reports</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {quickReports.map((report, index) => (
-                <Card key={index} className="shadow-card hover:shadow-lg transition-all cursor-pointer group">
+                <Card key={index} className="shadow-card hover:shadow-lg transition-all group">
                   <CardContent className="p-4 text-center">
                     <div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-primary/20 transition-colors">
                       <report.icon className="h-6 w-6 text-primary" />
                     </div>
                     <h3 className="font-medium mb-1">{report.name}</h3>
                     <p className="text-sm text-muted-foreground">{report.description}</p>
-                    <Button size="sm" variant="outline" className="mt-3 w-full">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="mt-3 w-full"
+                      onClick={() => handleQuickReport(report.name)}
+                    >
                       Generate
                     </Button>
                   </CardContent>
@@ -353,21 +345,23 @@ export default function Reports() {
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <Button size="sm" variant="outline">
-                      <Eye className="mr-2 h-4 w-4" />
-                      Preview
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      <Share className="mr-2 h-4 w-4" />
-                      Share
-                    </Button>
                     <Button 
                       size="sm" 
-                      className="bg-gradient-success"
+                      variant="outline"
+                      onClick={() => handleDownloadPDF(report.title)}
                       disabled={report.status !== "Ready"}
                     >
                       <Download className="mr-2 h-4 w-4" />
-                      Download
+                      PDF
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      className="bg-gradient-to-r from-primary to-primary/80"
+                      onClick={() => handleDownloadExcel(report.title)}
+                      disabled={report.status !== "Ready"}
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      Excel
                     </Button>
                   </div>
                 </div>
@@ -376,49 +370,6 @@ export default function Reports() {
           ))}
             </div>
           </div>
-
-          {/* Report Templates */}
-          <Card className="shadow-card">
-            <CardHeader>
-              <CardTitle>Custom Report Builder</CardTitle>
-              <CardDescription>
-                Create customized reports based on your specific needs
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 border border-border rounded-lg">
-                  <h3 className="font-medium mb-2">Financial Reports</h3>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    P&L statements, cash flow, balance sheets
-                  </p>
-                  <Button size="sm" variant="outline" className="w-full">
-                    Create Financial Report
-                  </Button>
-                </div>
-                
-                <div className="p-4 border border-border rounded-lg">
-                  <h3 className="font-medium mb-2">Analytics Reports</h3>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Performance metrics, trends, forecasting
-                  </p>
-                  <Button size="sm" variant="outline" className="w-full">
-                    Create Analytics Report
-                  </Button>
-                </div>
-                
-                <div className="p-4 border border-border rounded-lg">
-                  <h3 className="font-medium mb-2">Tax Reports</h3>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    GST returns, income tax summaries
-                  </p>
-                  <Button size="sm" variant="outline" className="w-full">
-                    Create Tax Report
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
           {/* Report Insights */}
           <Card className="shadow-card bg-gradient-to-br from-background via-background to-muted/20">
@@ -442,8 +393,6 @@ export default function Reports() {
               </div>
             </CardContent>
           </Card>
-        </>
-      )}
     </div>
   );
 }

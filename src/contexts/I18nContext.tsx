@@ -65,6 +65,35 @@ const translations: Translations = {
       tip_title: "आज की वित्तीय सलाह",
     },
   },
+  mr: {
+    common: {
+      app_title: "ट्रॅकिफाय डॅशबोर्ड",
+      language: "भाषा",
+      persona: "प्रोफाइल",
+      student: "विद्यार्थी",
+      business: "व्यवसाय",
+      common: "सामान्य",
+      continue: "सुरू ठेवा",
+      save: "जतन करा",
+      cancel: "रद्द करा",
+    },
+    dashboard: {
+      header_title: "तुमचा व्यवसाय डॅशबोर्ड",
+      subheader_today: "आजचा आर्थिक सारांश",
+      view_reports: "अहवाल पहा",
+      todays_income: "आजची उत्पन्न",
+      todays_expenses: "आजचा खर्च",
+      net_profit: "निव्वळ नफा",
+      transactions: "व्यवहार",
+      income_vs_expenses: "उत्पन्न विरुद्ध खर्च",
+      profit_loss_trend: "नफा आणि तोटा ट्रेंड",
+      category_breakdown: "श्रेणी विश्लेषण",
+      recent_transactions: "अलीकडील व्यवहार",
+      sale: "विक्री",
+      expense: "खर्च",
+      tip_title: "आजची आर्थिक सल्ला",
+    },
+  },
 };
 
 interface I18nContextValue {

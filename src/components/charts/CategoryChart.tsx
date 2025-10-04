@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   PieChart,
   Pie,
@@ -13,11 +13,16 @@ import {
   CartesianGrid
 } from 'recharts';
 import { PieChart as PieChartIcon, BarChart3 } from 'lucide-react';
-import { useTransactions } from '@/hooks/useStorage';
-import { formatCurrency } from '@/lib/storage';
+import { db } from '@/lib/database';
+import { Transaction } from '@/types';
 import { Button } from '@/components/ui/button';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#ff7c7c'];
+
+// Helper function for currency formatting
+const formatCurrency = (amount: number, currency = '₹'): string => {
+  return `${currency}${amount.toLocaleString('en-IN')}`;
+};
 
 interface CategoryChartProps {
   type?: 'pie' | 'bar' | 'simple';
@@ -25,9 +30,21 @@ interface CategoryChartProps {
 }
 
 export function CategoryChart({ type = 'simple', transactionType = 'expense' }: CategoryChartProps) {
-  const { transactions } = useTransactions();
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [chartType, setChartType] = useState<'pie' | 'bar' | 'simple'>(type);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    setTransactions(db.getTransactions());
+    const unsubscribe = db.subscribe(() => {
+      setTransactions(db.getTransactions());
+    });
+    return () => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+    };
+  }, []);
 
   // Calculate category data from transactions
   const categoryData = React.useMemo(() => {

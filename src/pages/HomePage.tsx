@@ -62,8 +62,8 @@ export function HomePage() {
       name: "राम शर्मा",
       business: "Grocery Store Owner",
       rating: 5,
-      comment: "VoicePay ने मेरे व्यापार को बहुत आसान बना दिया है। अब मैं हिंदी में बोलकर सब कुछ रिकॉर्ड कर सकता हूं।",
-      commentEn: "VoicePay has made my business so much easier. Now I can record everything by speaking in Hindi."
+      comment: "Tatva ने मेरे व्यापार को बहुत आसान बना दिया है। अब मैं हिंदी में बोलकर सब कुछ रिकॉर्ड कर सकता हूं।",
+      commentEn: "Tatva has made my business so much easier. Now I can record everything by speaking in Hindi."
     },
     {
       name: "Priya Patel",
@@ -76,8 +76,8 @@ export function HomePage() {
       name: "अजय महाजन",
       business: "Mobile Shop",
       rating: 5,
-      comment: "पहले मुझे हिसाब-किताब रखना मुश्किल लगता था। अब VoicePay के साथ सब कुछ automatic है।",
-      commentEn: "Earlier I found it difficult to keep accounts. Now with VoicePay everything is automatic."
+      comment: "पहले मुझे हिसाब-किताब रखना मुश्किल लगता था। अब Tatva के साथ सब कुछ automatic है।",
+      commentEn: "Earlier I found it difficult to keep accounts. Now with Tatva everything is automatic."
     }
   ];
 
@@ -99,9 +99,9 @@ export function HomePage() {
             </div>
             <div>
               <h1 className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                VoicePay
+                Tatva Business
               </h1>
-              <p className="text-xs text-muted-foreground">Smart Business Tracker</p>
+              <p className="text-xs text-muted-foreground">Smart Business Manager</p>
             </div>
           </div>
           
@@ -252,7 +252,7 @@ export function HomePage() {
             अपने व्यापार को बदलने के लिए तैयार हैं?
           </p>
           <p className="text-lg opacity-80 max-w-2xl mx-auto">
-            Join thousands of small business owners who are already using VoicePay to streamline their financial management.
+            Join thousands of small business owners who are already using Tatva to streamline their financial management.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
@@ -280,10 +280,10 @@ export function HomePage() {
                 <div className="h-8 w-8 bg-gradient-primary rounded-lg flex items-center justify-center">
                   <Wallet className="h-4 w-4 text-white" />
                 </div>
-                <span className="font-bold text-lg">VoicePay</span>
+                <span className="font-bold text-lg">Tatva Business</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Voice-enabled business expense tracking for Indian small businesses.
+                Voice-enabled business management platform for Indian small businesses.
               </p>
             </div>
             
@@ -319,7 +319,7 @@ export function HomePage() {
           </div>
           
           <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
-            <p>&copy; 2024 VoicePay. All rights reserved. Made with ❤️ for Indian businesses.</p>
+            <p>&copy; 2025 Tatva Business. All rights reserved. Made with ❤️ for Indian businesses.</p>
           </div>
         </div>
       </footer>

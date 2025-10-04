@@ -206,17 +206,6 @@ export default function Transactions() {
     toast.success('Transactions exported successfully');
   };
 
-  // Calculate stats
-  const totalIncome = transactions
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + t.amount, 0);
-  
-  const totalExpenses = transactions
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0);
-  
-  const netProfit = totalIncome - totalExpenses;
-
   // Filter and sort transactions
   const filteredTransactions = transactions
     .filter(transaction => {
@@ -264,6 +253,17 @@ export default function Transactions() {
         return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
       }
     });
+
+  // Calculate stats from filtered transactions
+  const totalIncome = filteredTransactions
+    .filter(t => t.type === 'income')
+    .reduce((sum, t) => sum + t.amount, 0);
+  
+  const totalExpenses = filteredTransactions
+    .filter(t => t.type === 'expense')
+    .reduce((sum, t) => sum + t.amount, 0);
+  
+  const netProfit = totalIncome - totalExpenses;
 
   const TransactionForm = useMemo(() => (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -614,6 +614,7 @@ export default function Transactions() {
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button variant="ghost" size="icon">
+                            <Trash2 className="h-4 w-4 text-red-600" />
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>

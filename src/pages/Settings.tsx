@@ -16,19 +16,23 @@ import {
   Upload, 
   Trash2,
   Save,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  Database
 } from "lucide-react";
 import { useAuth } from '@/contexts/AuthContext';
 import { useSettings } from '@/hooks/useStorage';
 import { StorageManager } from '@/lib/storage';
+import { usePreferences } from '@/contexts/PreferencesContext';
+import { loadDemoData } from '@/lib/demoData';
 
 export default function Settings() {
   const { user, signOut } = useAuth();
   const { settings, updateSettings } = useSettings();
+  const { language, setLanguage } = usePreferences();
   const [loading, setLoading] = useState(false);
 
   const [profileForm, setProfileForm] = useState({
-    name: user?.name || '',
+    name: user?.user_metadata?.full_name || '',
     email: user?.email || '',
     phone: '',
   });
@@ -44,7 +48,6 @@ export default function Settings() {
 
   const [preferences, setPreferences] = useState({
     currency: settings.currency || '₹',
-    language: settings.language || 'en',
     theme: settings.theme || 'system',
     notifications: true,
     autoBackup: false,
@@ -273,16 +276,27 @@ export default function Settings() {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="language">Language</Label>
-                  <Select value={preferences.language} onValueChange={(value) => setPreferences({ ...preferences, language: value })}>
+                  <Label htmlFor="language">Language / भाषा</Label>
+                  <Select 
+                    value={language || 'en'} 
+                    onValueChange={(value) => {
+                      setLanguage(value);
+                      // Show toast notification
+                      window.location.reload(); // Refresh to apply language change
+                    }}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="hi">हिन्दी</SelectItem>
+                      <SelectItem value="en">🇬🇧 English</SelectItem>
+                      <SelectItem value="hi">🇮🇳 हिन्दी (Hindi)</SelectItem>
+                      <SelectItem value="mr">🇮🇳 मराठी (Marathi)</SelectItem>
                     </SelectContent>
                   </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Changes will apply after page refresh
+                  </p>
                 </div>
                 <div>
                   <Label htmlFor="theme">Theme</Label>
@@ -378,6 +392,19 @@ export default function Settings() {
                       </label>
                     </Button>
                   </div>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <h3 className="text-lg font-medium">Load Demo Data</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Add sample data to test features, charts, and analytics. Includes 15 transactions and 12 products.
+                  </p>
+                  <Button onClick={loadDemoData} variant="secondary">
+                    <Database className="mr-2 h-4 w-4" />
+                    Load Demo Data
+                  </Button>
                 </div>
 
                 <Separator />

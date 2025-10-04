@@ -205,9 +205,9 @@ export function VoiceTransaction({ onTransactionDetected, language, onLanguageCh
         size="sm"
         onClick={handleVoiceInput}
         disabled={isListening}
-        className={isListening ? 'bg-red-50 animate-pulse' : ''}
+        className={isListening ? 'bg-red-500 text-white animate-pulse hover:bg-red-600' : ''}
       >
-        {isListening ? <MicOff className="mr-2 h-4 w-4 animate-pulse" /> : <Mic className="mr-2 h-4 w-4" />}
+        {isListening ? <MicOff className="mr-2 h-4 w-4 animate-pulse text-white" /> : <Mic className="mr-2 h-4 w-4" />}
         {isListening ? 'Listening...' : 'Voice'}
       </Button>
     </div>

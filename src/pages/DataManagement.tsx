@@ -109,50 +109,50 @@ export default function DataManagement() {
   return (
     <div className="space-y-6 p-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Data Management</h1>
-        <p className="text-slate-600 mt-1">Backup, restore, and manage your business data</p>
+        <h1 className="text-3xl font-bold">Data Management</h1>
+        <p className="text-muted-foreground/80 mt-1">Backup, restore, and manage your business data</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="border-l-4 border-l-blue-500">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Transactions</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Transactions</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-slate-900">{storageInfo.transactions}</p>
-            <p className="text-xs text-slate-500 mt-1">Total records</p>
+            <p className="text-2xl font-bold">{storageInfo.transactions}</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">Total records</p>
           </CardContent>
         </Card>
 
         <Card className="border-l-4 border-l-emerald-500">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Products</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Products</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-slate-900">{storageInfo.products}</p>
-            <p className="text-xs text-slate-500 mt-1">In inventory</p>
+            <p className="text-2xl font-bold">{storageInfo.products}</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">In inventory</p>
           </CardContent>
         </Card>
 
         <Card className="border-l-4 border-l-violet-500">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Categories</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Categories</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-slate-900">{storageInfo.categories}</p>
-            <p className="text-xs text-slate-500 mt-1">Organized</p>
+            <p className="text-2xl font-bold">{storageInfo.categories}</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">Organized</p>
           </CardContent>
         </Card>
 
         <Card className="border-l-4 border-l-amber-500">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Storage Size</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Storage Size</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-slate-900">
+            <p className="text-2xl font-bold">
               {(storageInfo.size / 1024).toFixed(1)} KB
             </p>
-            <p className="text-xs text-slate-500 mt-1">Total data</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">Total data</p>
           </CardContent>
         </Card>
       </div>
@@ -177,10 +177,10 @@ export default function DataManagement() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-muted-foreground">
                 Export includes:
               </p>
-              <ul className="text-sm text-slate-600 space-y-1 ml-4">
+              <ul className="text-sm text-muted-foreground space-y-1 ml-4">
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                   All transactions (income & expenses)
@@ -237,7 +237,7 @@ export default function DataManagement() {
               </AlertDescription>
             </Alert>
             <div className="space-y-2">
-              <Label htmlFor="import-file" className="text-sm text-slate-600">
+              <Label htmlFor="import-file" className="text-sm text-muted-foreground">
                 Select backup file (.json)
               </Label>
               <Input
@@ -251,7 +251,7 @@ export default function DataManagement() {
             {isImporting && (
               <div className="flex items-center justify-center py-4">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600" />
-                <span className="ml-2 text-sm text-slate-600">Importing data...</span>
+                <span className="ml-2 text-sm text-muted-foreground">Importing data...</span>
               </div>
             )}
           </CardContent>
@@ -315,8 +315,8 @@ export default function DataManagement() {
               <CheckCircle2 className="w-6 h-6 text-emerald-600" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-slate-900 mb-2">Always Available</h3>
-              <p className="text-sm text-slate-600 mb-3">
+              <h3 className="font-semibold mb-2">Always Available</h3>
+              <p className="text-sm text-muted-foreground mb-3">
                 All your data is stored locally in your browser's storage. You can access and manage
                 your business data even without an internet connection. Changes are saved instantly
                 and persist across browser sessions.

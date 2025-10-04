@@ -1,14 +1,28 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BalanceCard } from './analytics/BalanceCard';
 import { ExpenseDonutChart } from './analytics/ExpenseDonutChart';
 import { TotalBalanceChart } from './analytics/TotalBalanceChart';
 import { IncomeBarChart } from './analytics/IncomeBarChart';
 import { BudgetProgress } from './analytics/BudgetProgress';
-import { useTransactions, useStats } from '@/hooks/useStorage';
+import { db } from '@/lib/database';
+import { Transaction } from '@/types';
 
 export function AnalyticsDashboard() {
-  const { transactions } = useTransactions();
-  const { todayStats, stats } = useStats();
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+
+  useEffect(() => {
+    loadData();
+    const unsubscribe = db.subscribe(() => loadData());
+    return () => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+    };
+  }, []);
+
+  const loadData = () => {
+    setTransactions(db.getTransactions());
+  };
   
   // Calculate monthly stats from transactions
   const monthStats = React.useMemo(() => {
@@ -113,13 +127,13 @@ export function AnalyticsDashboard() {
   const totalExpenses = expenseData.reduce((sum, item) => sum + item.amount, 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900/20 to-gray-900 p-6">
+    <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Analytics Dashboard</h1>
-          <p className="text-gray-400">Comprehensive financial insights and trends</p>
+          <h1 className="text-4xl font-bold mb-2">Analytics Dashboard</h1>
+          <p className="text-muted-foreground">Comprehensive financial insights and trends</p>
         </div>
 
         {/* Top Row - KPI Cards */}
@@ -166,29 +180,29 @@ export function AnalyticsDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
           {/* Quick Stats Cards */}
           <div className="bg-gradient-to-br from-emerald-500/20 to-teal-500/20 backdrop-blur-xl rounded-xl p-4 border border-emerald-500/30">
-            <div className="text-emerald-400 text-sm font-medium">Avg Daily Income</div>
-            <div className="text-white text-2xl font-bold mt-1">
-              ${(monthStats.totalIncome / 30).toFixed(0)}
+            <div className="text-emerald-600 dark:text-emerald-400 text-sm font-medium">Avg Daily Income</div>
+            <div className="text-foreground text-2xl font-bold mt-1">
+              ₹{(monthStats.totalIncome / 30).toFixed(0)}
             </div>
           </div>
           
           <div className="bg-gradient-to-br from-red-500/20 to-pink-500/20 backdrop-blur-xl rounded-xl p-4 border border-red-500/30">
-            <div className="text-red-400 text-sm font-medium">Avg Daily Expense</div>
-            <div className="text-white text-2xl font-bold mt-1">
-              ${(monthStats.totalExpenses / 30).toFixed(0)}
+            <div className="text-red-600 dark:text-red-400 text-sm font-medium">Avg Daily Expense</div>
+            <div className="text-foreground text-2xl font-bold mt-1">
+              ₹{(monthStats.totalExpenses / 30).toFixed(0)}
             </div>
           </div>
           
           <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 backdrop-blur-xl rounded-xl p-4 border border-blue-500/30">
-            <div className="text-blue-400 text-sm font-medium">Savings Rate</div>
-            <div className="text-white text-2xl font-bold mt-1">
+            <div className="text-blue-600 dark:text-blue-400 text-sm font-medium">Savings Rate</div>
+            <div className="text-foreground text-2xl font-bold mt-1">
               {((monthStats.totalIncome - monthStats.totalExpenses) / monthStats.totalIncome * 100).toFixed(1)}%
             </div>
           </div>
           
           <div className="bg-gradient-to-br from-purple-500/20 to-indigo-500/20 backdrop-blur-xl rounded-xl p-4 border border-purple-500/30">
-            <div className="text-purple-400 text-sm font-medium">Transactions</div>
-            <div className="text-white text-2xl font-bold mt-1">
+            <div className="text-purple-600 dark:text-purple-400 text-sm font-medium">Transactions</div>
+            <div className="text-foreground text-2xl font-bold mt-1">
               {transactions.length}
             </div>
           </div>

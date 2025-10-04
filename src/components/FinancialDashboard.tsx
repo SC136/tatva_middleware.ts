@@ -13,8 +13,10 @@ import {
   MoreHorizontal,
   Wifi
 } from "lucide-react";
+import { useI18n } from "@/contexts/I18nContext";
 
 export function FinancialDashboard() {
+  const { t } = useI18n();
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto">
@@ -25,7 +27,7 @@ export function FinancialDashboard() {
           <div className="lg:col-span-1">
             <Card className="bg-card border-border shadow-lg h-full">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-white text-lg font-semibold">Income & Expenses</CardTitle>
+                <CardTitle className="text-white text-lg font-semibold">{t('income_vs_expenses', 'dashboard')}</CardTitle>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground">Month</span>
                   <Button variant="ghost" size="sm" className="h-6 w-6 p-0">

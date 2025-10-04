@@ -17,8 +17,12 @@ import { db } from '@/lib/database';
 import { Transaction, Product } from '@/types';
 import { format, startOfMonth, startOfWeek, startOfDay, subDays } from 'date-fns';
 import { Link } from 'react-router-dom';
+import { usePreferences } from '@/contexts/PreferencesContext';
+import { useTranslations, type Language } from '@/lib/translations';
 
 export function Dashboard() {
+  const { language } = usePreferences();
+  const t = useTranslations((language || 'en') as Language);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [dateRange, setDateRange] = useState<'today' | 'week' | 'month'>('month');
@@ -147,8 +151,8 @@ export function Dashboard() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Business Dashboard</h1>
-            <p className="text-muted-foreground">Overview of your business performance</p>
+            <h1 className="text-3xl font-bold">{t('businessDashboard')}</h1>
+            <p className="text-muted-foreground">{t('overviewPerformance')}</p>
           </div>
           <div className="flex gap-2">
             <Button
@@ -156,21 +160,21 @@ export function Dashboard() {
               size="sm"
               onClick={() => setDateRange('today')}
             >
-              Today
+              {t('today')}
             </Button>
             <Button
               variant={dateRange === 'week' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setDateRange('week')}
             >
-              Week
+              {t('week')}
             </Button>
             <Button
               variant={dateRange === 'month' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setDateRange('month')}
             >
-              Month
+              {t('month')}
             </Button>
           </div>
         </div>
@@ -189,7 +193,7 @@ export function Dashboard() {
                   {Math.abs(Number(incomeGrowth))}%
                 </div>
               </div>
-              <h3 className="text-sm font-medium text-white/80 mb-1">Total Income</h3>
+              <h3 className="text-sm font-medium text-white/80 mb-1">{t('totalIncome')}</h3>
               <p className="text-3xl font-bold">₹{totalIncome.toLocaleString()}</p>
             </CardContent>
           </Card>
@@ -202,10 +206,10 @@ export function Dashboard() {
                   <TrendingDown className="h-6 w-6" />
                 </div>
                 <div className="text-sm text-white/80">
-                  {filteredTransactions.filter(t => t.type === 'expense').length} transactions
+                  {filteredTransactions.filter(t => t.type === 'expense').length} {t('transactionsCount')}
                 </div>
               </div>
-              <h3 className="text-sm font-medium text-white/80 mb-1">Total Expenses</h3>
+              <h3 className="text-sm font-medium text-white/80 mb-1">{t('totalExpenses')}</h3>
               <p className="text-3xl font-bold">₹{totalExpenses.toLocaleString()}</p>
             </CardContent>
           </Card>
@@ -218,10 +222,10 @@ export function Dashboard() {
                   <DollarSign className="h-6 w-6" />
                 </div>
                 <div className="text-sm text-white/80">
-                  {profitMargin}% margin
+                  {profitMargin}% {t('margin')}
                 </div>
               </div>
-              <h3 className="text-sm font-medium text-white/80 mb-1">Net Profit</h3>
+              <h3 className="text-sm font-medium text-white/80 mb-1">{t('netProfit')}</h3>
               <p className="text-3xl font-bold">₹{netProfit.toLocaleString()}</p>
             </CardContent>
           </Card>
@@ -234,10 +238,10 @@ export function Dashboard() {
                   <Package className="h-6 w-6" />
                 </div>
                 <div className="text-sm text-white/80">
-                  {products.length} items
+                  {products.length} {t('items')}
                 </div>
               </div>
-              <h3 className="text-sm font-medium text-white/80 mb-1">Inventory Value</h3>
+              <h3 className="text-sm font-medium text-white/80 mb-1">{t('inventoryValue')}</h3>
               <p className="text-3xl font-bold">₹{inventoryValue.toLocaleString()}</p>
             </CardContent>
           </Card>
@@ -251,10 +255,10 @@ export function Dashboard() {
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="flex items-center gap-2">
                 <Activity className="h-5 w-5" />
-                Recent Transactions
+                {t('recentTransactions')}
               </CardTitle>
               <Link to="/transactions">
-                <Button variant="ghost" size="sm">View All</Button>
+                <Button variant="ghost" size="sm">{t('viewAll')}</Button>
               </Link>
             </CardHeader>
             <CardContent>
@@ -297,7 +301,7 @@ export function Dashboard() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ShoppingCart className="h-5 w-5" />
-                Top Categories
+                {t('topCategories')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -354,14 +358,14 @@ export function Dashboard() {
               {lowStockProducts.length > 0 ? (
                 <div className="space-y-3">
                   {lowStockProducts.slice(0, 5).map((product) => (
-                    <div key={product.id} className="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                    <div key={product.id} className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-900 rounded-lg">
                       <div>
-                        <p className="font-medium">{product.name}</p>
-                        <p className="text-sm text-muted-foreground">{product.category}</p>
+                        <p className="font-medium text-orange-900 dark:text-orange-100">{product.name}</p>
+                        <p className="text-sm text-orange-700 dark:text-orange-300">{product.category}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold text-orange-600">{product.stockQuantity} left</p>
-                        <p className="text-xs text-muted-foreground">Min: {product.lowStockThreshold}</p>
+                        <p className="font-semibold text-orange-600 dark:text-orange-400">{product.stockQuantity} left</p>
+                        <p className="text-xs text-orange-600 dark:text-orange-400">Min: {product.lowStockThreshold}</p>
                       </div>
                     </div>
                   ))}

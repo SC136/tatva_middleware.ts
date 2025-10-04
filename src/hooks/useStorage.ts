@@ -222,10 +222,8 @@ export const useSettings = () => {
   };
 };
 
-// Dashboard Stats Hook
+// Dashboard Stats Hook - Updated to use database
 export const useStats = () => {
-  const { transactions } = useTransactions();
-  const { products } = useProducts();
   const [stats, setStats] = useState<DashboardStats>({
     totalIncome: 0,
     totalExpenses: 0,
@@ -244,82 +242,99 @@ export const useStats = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const calculateStats = () => {
-      // Overall stats
-      const totalIncome = transactions
-        .filter(t => t.type === 'income')
-        .reduce((sum, t) => sum + t.amount, 0);
-      
-      const totalExpenses = transactions
-        .filter(t => t.type === 'expense')
-        .reduce((sum, t) => sum + t.amount, 0);
-      
-      const netProfit = totalIncome - totalExpenses;
-      
-      // Today's stats
-      const today = new Date().toDateString();
-      const todayTransactions = transactions.filter(t => 
-        new Date(t.date).toDateString() === today
-      );
-      
-      const todayIncome = todayTransactions
-        .filter(t => t.type === 'income')
-        .reduce((sum, t) => sum + t.amount, 0);
-      
-      const todayExpenses = todayTransactions
-        .filter(t => t.type === 'expense')
-        .reduce((sum, t) => sum + t.amount, 0);
-      
-      // Monthly trends (last 6 months)
-      const monthlyTrends = [];
-      for (let i = 5; i >= 0; i--) {
-        const date = new Date();
-        date.setMonth(date.getMonth() - i);
-        const monthStr = date.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
+    // Import db dynamically to avoid circular dependencies
+    import('@/lib/database').then(({ db }) => {
+      const calculateStats = () => {
+        const transactions = db.getTransactions();
+        const products = db.getProducts();
         
-        const monthTransactions = transactions.filter(t => {
-          const tDate = new Date(t.date);
-          return tDate.getMonth() === date.getMonth() && tDate.getFullYear() === date.getFullYear();
-        });
-        
-        const monthIncome = monthTransactions
+        // Overall stats
+        const totalIncome = transactions
           .filter(t => t.type === 'income')
           .reduce((sum, t) => sum + t.amount, 0);
         
-        const monthExpenses = monthTransactions
+        const totalExpenses = transactions
           .filter(t => t.type === 'expense')
           .reduce((sum, t) => sum + t.amount, 0);
         
-        monthlyTrends.push({
-          month: monthStr,
-          income: monthIncome,
-          expenses: monthExpenses,
-          profit: monthIncome - monthExpenses,
+        const netProfit = totalIncome - totalExpenses;
+        
+        // Today's stats
+        const today = new Date().toDateString();
+        const todayTransactions = transactions.filter(t => 
+          new Date(t.date).toDateString() === today
+        );
+        
+        const todayIncome = todayTransactions
+          .filter(t => t.type === 'income')
+          .reduce((sum, t) => sum + t.amount, 0);
+        
+        const todayExpenses = todayTransactions
+          .filter(t => t.type === 'expense')
+          .reduce((sum, t) => sum + t.amount, 0);
+        
+        // Monthly trends (last 6 months)
+        const monthlyTrends = [];
+        for (let i = 5; i >= 0; i--) {
+          const date = new Date();
+          date.setMonth(date.getMonth() - i);
+          const monthStr = date.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
+          
+          const monthTransactions = transactions.filter(t => {
+            const tDate = new Date(t.date);
+            return tDate.getMonth() === date.getMonth() && tDate.getFullYear() === date.getFullYear();
+          });
+          
+          const monthIncome = monthTransactions
+            .filter(t => t.type === 'income')
+            .reduce((sum, t) => sum + t.amount, 0);
+          
+          const monthExpenses = monthTransactions
+            .filter(t => t.type === 'expense')
+            .reduce((sum, t) => sum + t.amount, 0);
+          
+          monthlyTrends.push({
+            month: monthStr,
+            income: monthIncome,
+            expenses: monthExpenses,
+            profit: monthIncome - monthExpenses,
+          });
+        }
+
+        setStats({
+          totalIncome,
+          totalExpenses,
+          netProfit,
+          totalTransactions: transactions.length,
+          topProducts: products.slice(0, 5) as any, // Type compatibility - products from new db system
+          recentTransactions: transactions.slice(0, 10) as any, // Type compatibility - transactions from new db system
+          monthlyTrends,
         });
-      }
 
-      setStats({
-        totalIncome,
-        totalExpenses,
-        netProfit,
-        totalTransactions: transactions.length,
-        topProducts: products.slice(0, 5),
-        recentTransactions: transactions.slice(0, 10),
-        monthlyTrends,
+        setTodayStats({
+          totalIncome: todayIncome,
+          totalExpenses: todayExpenses,
+          netProfit: todayIncome - todayExpenses,
+          totalTransactions: todayTransactions.length,
+        });
+
+        setLoading(false);
+      };
+
+      calculateStats();
+      
+      // Subscribe to database changes
+      const unsubscribe = db.subscribe(() => {
+        calculateStats();
       });
 
-      setTodayStats({
-        totalIncome: todayIncome,
-        totalExpenses: todayExpenses,
-        netProfit: todayIncome - todayExpenses,
-        totalTransactions: todayTransactions.length,
-      });
-
-      setLoading(false);
-    };
-
-    calculateStats();
-  }, [transactions, products]);
+      return () => {
+        if (typeof unsubscribe === 'function') {
+          unsubscribe();
+        }
+      };
+    });
+  }, []);
 
   return {
     stats,
